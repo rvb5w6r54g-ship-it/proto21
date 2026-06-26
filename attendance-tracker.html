@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PROTO21 — Attendance Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh}
+
+/* ── TOPBAR ── */
+#topbar{background:#0f172a;display:flex;align-items:stretch;padding:0 24px;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.35);min-height:56px}
+.logo{display:flex;align-items:center;gap:10px;padding:0 24px 0 0;border-right:1px solid rgba(255,255,255,.08);margin-right:2px;flex-shrink:0}
+.logo-icon{width:32px;height:32px;border-radius:7px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;padding:2px}
+.logo-text{color:#fff;font-weight:800;font-size:13px;letter-spacing:-.3px;line-height:1.2}
+.logo-sub{color:rgba(255,255,255,.3);font-size:9px}
+#dept-tabs{display:flex;flex:1;align-items:stretch;overflow-x:auto;scrollbar-width:none}
+#dept-tabs::-webkit-scrollbar{display:none}
+.dtab{display:flex;align-items:center;gap:6px;padding:0 16px;border:none;cursor:pointer;background:transparent;border-bottom:3px solid transparent;color:rgba(255,255,255,.38);font-weight:500;font-size:12.5px;white-space:nowrap;transition:color .15s;flex-shrink:0}
+.dtab:hover{color:rgba(255,255,255,.7)}
+.dtab.active{color:#fff;font-weight:700}
+.dtab .badge{font-size:10px;background:rgba(255,255,255,.1);color:#fff;border-radius:99px;padding:1px 6px;font-weight:700;transition:background .15s}
+.dtab.active .badge{background:var(--tacc)}
+.topbar-right{display:flex;align-items:center;gap:8px;padding-left:16px;border-left:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.fname-label{font-size:11px;color:rgba(255,255,255,.4);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-upload{background:#d42027;border:none;color:#fff;padding:7px 16px;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(212,32,39,.35);transition:opacity .15s}
+.btn-upload:hover{opacity:.88}
+.btn-upload:disabled{opacity:.5;cursor:wait}
+.btn-reset{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:7px 14px;border-radius:7px;font-weight:600;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.btn-reset:hover{border-color:rgba(255,255,255,.5);color:#fff}
+.user-email{font-size:11px;color:rgba(255,255,255,.55);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-signout{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:7px 12px;border-radius:7px;font-weight:600;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-signout:hover{border-color:rgba(255,255,255,.5);color:#fff}
+
+/* ── LOGIN GATE ── */
+#gate{position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#0f172a,#1e293b);display:flex;align-items:center;justify-content:center;padding:20px}
+.gate-card{background:#fff;border-radius:18px;padding:44px 38px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.gate-logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#FF6B2B,#ff9a5c);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:26px;margin:0 auto 18px}
+.gate-card h1{font-size:20px;font-weight:800;margin-bottom:8px;color:#1a1a2e}
+.gate-card p{font-size:13px;color:#888;margin-bottom:26px;line-height:1.55}
+.gbtn{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #dadce0;border-radius:9px;padding:11px 20px;font-size:14px;font-weight:600;color:#3c4043;cursor:pointer;transition:all .15s;width:100%;justify-content:center}
+.gbtn:hover{background:#f8f9fa;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.gbtn:disabled{opacity:.6;cursor:wait}
+#gate-msg{margin-top:18px;font-size:12px;line-height:1.5;color:#b45309}
+.gate-spin{font-size:28px;display:inline-block;animation:spin 1s linear infinite}
+
+/* ── BODY ── */
+#body{padding:20px 24px;max-width:1900px;margin:0 auto}
+
+/* ── DROP ZONE ── */
+#dropzone{border:2px dashed #c8cdd6;border-radius:16px;padding:64px 32px;text-align:center;cursor:pointer;background:#fff;transition:border-color .2s,background .2s;user-select:none}
+#dropzone:hover,#dropzone.drag{border-color:#d42027;background:#fef5f5}
+.dz-icon{font-size:52px;margin-bottom:18px;line-height:1}
+.dz-title{font-size:20px;font-weight:800;margin-bottom:8px;color:#1a1a2e}
+.dz-sub{color:#888;font-size:13.5px;max-width:460px;margin:0 auto 24px}
+.dz-chips{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.dz-chip{border-radius:9px;padding:10px 18px;text-align:left;min-width:170px;border:1px solid var(--bdr);background:var(--lt)}
+.dz-chip-icon{font-size:17px;margin-bottom:4px}
+.dz-chip-name{font-weight:700;font-size:12.5px;color:var(--acc)}
+.dz-chip-cnt{font-size:11px;color:#aaa;margin-top:2px}
+
+/* ── LOADING ── */
+#loading{display:none;background:#fff;border-radius:16px;padding:60px 32px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.spin{display:inline-block;font-size:40px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── STAT CARDS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:#fff;border-radius:10px;padding:13px 16px;border:1.5px solid var(--bdr)}
+.stat-lbl{font-size:10.5px;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.stat-val{font-size:21px;font-weight:800;color:var(--acc);line-height:1}
+.stat-sub{font-size:10.5px;color:#bbb;margin-top:3px}
+
+/* ── VIEW TOGGLES ── */
+.view-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.vtbtn{padding:5px 12px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#666;transition:all .15s}
+.vtbtn.on{color:#fff;border-color:var(--acc);background:var(--acc)}
+.legend{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.leg{font-size:10.5px;border-radius:5px;padding:2px 8px;font-weight:600;border:1px solid}
+
+/* ── DOWNLOAD BUTTONS ── */
+.dl-btn{font-size:11px;font-weight:700;border:1.5px solid var(--acc);color:var(--acc);background:#fff;border-radius:7px;padding:6px 12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.dl-btn:hover{background:var(--acc);color:#fff}
+.dl-btn:disabled{opacity:.5;cursor:wait}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border:1px solid #e5e8ed;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+thead tr.hdr-date{background:var(--acc)}
+thead tr.hdr-dow{background:color-mix(in srgb,var(--acc) 80%,#000)}
+th{padding:0 3px;color:#fff;font-weight:700;text-align:center;white-space:nowrap;border-left:1px solid rgba(255,255,255,.1)}
+th.s0{position:sticky;z-index:3;border-left:none}
+th.left{text-align:left;padding-left:10px}
+th.bsep{border-left:2px solid rgba(255,255,255,.25)!important}
+td{padding:6px 3px;text-align:center;font-size:11px;border-bottom:1px solid #f0f2f5;border-left:1px solid #eff1f4}
+td.s0{position:sticky;z-index:1}
+td.left{text-align:left;padding-left:10px;white-space:nowrap}
+td.bsep{border-left:2px solid #e2e6ea!important}
+/* row striping — managed via JS inline bg */
+.c-ot{background:#fff7ed!important;color:#b45309;font-weight:700}
+.c-sun{background:#fef2f2!important;color:#b91c1c;font-weight:700}
+.c-ok{background:#f0fdf4!important;color:#15803d;font-weight:500}
+.c-off{background:#f5f5f6!important;color:#ccc}
+.c-in{color:#bbb}
+tfoot tr{background:var(--lt)}
+tfoot td{font-weight:800;font-size:11.5px;padding:9px 4px;border-top:2px solid var(--bdr)}
+
+/* ── CONTENT CARD ── */
+.content-card{background:#fff;border-radius:12px;padding:20px 22px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.card-bar{width:5px;height:26px;border-radius:3px;flex-shrink:0}
+.card-title{font-size:16px;font-weight:800}
+.card-sub{font-size:12px;color:#aaa;font-weight:400}
+.period-pill{margin-left:auto;font-size:11px;color:#666;background:#f4f5f7;border-radius:20px;padding:4px 12px;border:1px solid #e5e7eb}
+.note{margin-top:8px;font-size:10.5px;color:#bbb;line-height:1.6}
+
+/* ── BANNER ── */
+.banner{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:9px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;font-size:12px;flex-wrap:wrap}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .stats{grid-template-columns:1fr 1fr}
+  #topbar{padding:0 12px}
+  #body{padding:14px 12px}
+  .dtab{padding:0 10px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN GATE (shown until a @proto21.ae account signs in) ── -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">P</div>
+    <h1>PROTO21 Attendance</h1>
+    <p>Restricted access. Sign in with your <strong>@proto21.ae</strong> Google account to continue.</p>
+    <button class="gbtn" id="gate-btn" onclick="login()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="gate-msg"></div>
+  </div>
+</div>
+
+<!-- ── APP (hidden until authenticated) ── -->
+<div id="app-root" style="display:none">
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">P</div>
+    <div>
+      <div class="logo-text">PROTO21</div>
+      <div class="logo-sub">Attendance Tracker</div>
+    </div>
+  </div>
+  <div id="dept-tabs"></div>
+  <div class="topbar-right">
+    <span class="fname-label" id="fname-label"></span>
+    <button class="btn-reset" id="btn-reset" style="display:none" onclick="resetApp()">↩ Reset</button>
+    <button class="btn-upload" id="btn-upload" onclick="document.getElementById('file-input').click()">📂 Upload PDF</button>
+    <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFile(this.files[0])"/>
+    <span class="user-email" id="user-email"></span>
+    <button class="btn-signout" id="btn-signout" onclick="logout()" style="display:none">⏻ Sign out</button>
+  </div>
+</div>
+
+<!-- ── BODY ── -->
+<div id="body">
+  <!-- Drop Zone -->
+  <div id="dropzone"
+    ondragover="event.preventDefault();this.classList.add('drag')"
+    ondragleave="this.classList.remove('drag')"
+    ondrop="this.classList.remove('drag');event.preventDefault();handleFile(event.dataTransfer.files[0])"
+    onclick="document.getElementById('file-input').click()">
+    <div class="dz-icon">📋</div>
+    <div class="dz-title">Upload Punch Details PDF</div>
+    <div class="dz-sub">Drag &amp; drop your attendance PDF here, or click to browse.<br>Employees matched <strong>strictly by Employee ID</strong> — works with any date range.</div>
+    <div class="dz-chips" id="dz-chips"></div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spin">⚙️</div>
+    <div style="font-size:16px;font-weight:700;margin-top:14px">Parsing PDF…</div>
+    <div style="color:#888;font-size:13px;margin-top:6px">Reading punch records and matching by Employee ID</div>
+    <div id="loading-progress" style="margin-top:10px;font-size:12px;color:#aaa"></div>
+  </div>
+
+  <!-- Dashboard (hidden until PDF loaded) -->
+  <div id="dashboard" style="display:none">
+    <div class="banner" id="match-banner"></div>
+    <div class="content-card" id="dept-card"></div>
+  </div>
+</div>
+
+</div><!-- /app-root -->
+
+<!-- ════════════════════════════════════════════════════════════
+     FIREBASE GOOGLE SIGN-IN
+     1. Create a Firebase project + register a Web app
+     2. Enable Authentication → Google provider
+     3. Paste your config object below where marked
+     Only @proto21.ae Google accounts are allowed in.
+════════════════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+
+// ▼▼▼ FIREBASE CONFIG ▼▼▼
+const firebaseConfig = {
+  apiKey:            "AIzaSyD7aijbeANcPzFtJN5q0eEs8_-lxCejlvE",
+  authDomain:        "proto21-636b5.firebaseapp.com",
+  projectId:         "proto21-636b5",
+  storageBucket:     "proto21-636b5.firebasestorage.app",
+  messagingSenderId: "508709244968",
+  appId:             "1:508709244968:web:f2c7a227f3ba6e5e44251d",
+  measurementId:     "G-ZQ7DTX6W92"
+};
+// ▲▲▲ FIREBASE CONFIG ▲▲▲
+
+const ALLOWED_DOMAIN = "@proto21.ae";   // only these accounts may enter
+
+const gate      = document.getElementById("gate");
+const appRoot   = document.getElementById("app-root");
+const gateBtn   = document.getElementById("gate-btn");
+const gateMsg   = document.getElementById("gate-msg");
+const userEmail = document.getElementById("user-email");
+const btnSignout= document.getElementById("btn-signout");
+
+function showApp(show){
+  gate.style.display    = show ? "none"  : "flex";
+  appRoot.style.display = show ? "block" : "none";
+}
+
+if(firebaseConfig.apiKey.startsWith("PASTE")){
+  // Not configured yet — guide the admin instead of crashing
+  gateBtn.style.display = "none";
+  gateMsg.innerHTML = "⚙️ <strong>Setup needed.</strong> Paste your Firebase config into this file (the <code>firebaseConfig</code> object) to enable Google sign-in.";
+} else {
+  const app  = initializeApp(firebaseConfig);
+  try { getAnalytics(app); } catch(e) { /* Analytics is optional — ignore if it can't load */ }
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ hd: "proto21.ae", prompt: "select_account" });
+
+  window.login = () => {
+    gateBtn.disabled = true;
+    gateMsg.textContent = "";
+    signInWithPopup(auth, provider).catch(err => {
+      gateMsg.innerHTML = "⚠️ " + err.message;
+      gateBtn.disabled = false;
+    });
+  };
+  window.logout = () => signOut(auth);
+
+  // While Firebase restores any existing session, show a spinner
+  gateBtn.style.display = "none";
+  gateMsg.innerHTML = '<span class="gate-spin">⚙️</span>';
+
+  onAuthStateChanged(auth, (user) => {
+    const ok = user && user.email && user.email.toLowerCase().endsWith(ALLOWED_DOMAIN);
+
+    if(user && !ok){
+      // Signed in with a non-company account → reject
+      signOut(auth);
+      gateBtn.style.display = "";
+      gateBtn.disabled = false;
+      gateMsg.innerHTML = "⚠️ Please use a <strong>@proto21.ae</strong> account.";
+      showApp(false);
+      return;
+    }
+    if(ok){
+      userEmail.textContent = user.email;
+      btnSignout.style.display = "";
+      showApp(true);
+    } else {
+      userEmail.textContent = "";
+      btnSignout.style.display = "none";
+      gateBtn.style.display = "";
+      gateBtn.disabled = false;
+      gateMsg.innerHTML = "";
+      showApp(false);
+    }
+  });
+}
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  MASTER ROSTER — source of truth, matched by Employee ID
+// ════════════════════════════════════════════════════════════
+const ROSTER = [
+  {si:1,  id:"12922", name:"Pir Muhammad Arkam",          dept:"Business Management"},
+  {si:2,  id:"13032", name:"Marites Arado",                dept:"Business Management"},
+  {si:3,  id:"14462", name:"Myleen",                       dept:"Business Management"},
+  {si:4,  id:"14706", name:"Eric Parreno",                 dept:"Business Management"},
+  {si:5,  id:"15169", name:"Sohaib Ali Khan",              dept:"Business Management"},
+  {si:6,  id:"14963", name:"Aubrey Parel",                 dept:"Business Management"},
+  {si:7,  id:"15269", name:"Cinderella John",              dept:"Business Management"},
+  {si:8,  id:"15418", name:"Kurt Pinto",                   dept:"Business Management"},
+  {si:9,  id:"14537", name:"Aditya Khattri",               dept:"3D Design"},
+  {si:10, id:"14556", name:"Mohammed Jamsheer",            dept:"3D Design"},
+  {si:11, id:"90125", name:"Amal Biju",                    dept:"3D Design"},
+  {si:12, id:"14981", name:"Vishal John Rayan",            dept:"3D Design"},
+  {si:13, id:"13884", name:"Pritviraj Vittal Poojary",     dept:"3D Printing"},
+  {si:14, id:"14911", name:"Peter Olukayode",              dept:"3D Printing"},
+  {si:15, id:"13176", name:"Nizam Din Jan Badshah",        dept:"3D Printing"},
+  {si:16, id:"14662", name:"Andrian Punzalan",             dept:"3D Printing"},
+  {si:17, id:"14718", name:"Muhammad Qazzafi Khan",        dept:"3D Printing"},
+  {si:18, id:"14837", name:"Prasad Jagdish Patil",         dept:"3D Printing"},
+  {si:19, id:"14969", name:"Touqeer Farman",               dept:"3D Printing"},
+  {si:20, id:"15293", name:"Umarfarukh Sikandar Shaikh",   dept:"3D Printing"},
+  {si:21, id:"15424", name:"Lokesh Lakshmanan",            dept:"3D Printing"},
+  {si:22, id:"13748", name:"Fahad Ali",                    dept:"Finishing & Fabrication"},
+  {si:23, id:"34567", name:"Shahrez Khan",                 dept:"Finishing & Fabrication"},
+  {si:24, id:"13656", name:"Soleman Shaikh",               dept:"Finishing & Fabrication"},
+  {si:25, id:"13438", name:"Prakash Kumar",                dept:"Finishing & Fabrication"},
+  {si:26, id:"13980", name:"Sandeep Pal",                  dept:"Finishing & Fabrication"},
+  {si:27, id:"14023", name:"Imran Uddin",                  dept:"Finishing & Fabrication"},
+  {si:28, id:"13906", name:"Ziyauddin Shaik",              dept:"Finishing & Fabrication"},
+  {si:29, id:"13653", name:"Jamal Noornain",               dept:"Finishing & Fabrication"},
+  {si:30, id:"56789", name:"Abdur Rehman",                 dept:"Finishing & Fabrication"},
+  {si:31, id:"90128", name:"Muhammad Bilal",               dept:"Finishing & Fabrication"},
+  {si:32, id:"90127", name:"Sasikumar",                    dept:"Finishing & Fabrication"},
+  {si:33, id:"13807", name:"Armin Ancheta",                dept:"Finishing & Fabrication"},
+  {si:34, id:"14570", name:"Leo Andrew Goda",              dept:"Finishing & Fabrication"},
+  {si:35, id:"14579", name:"Erwin Sajul",                  dept:"Finishing & Fabrication"},
+  {si:36, id:"13046", name:"Vaibhav Shivaji Chandam",      dept:"Finishing & Fabrication"},
+  {si:37, id:"14814", name:"Ramil Sapungan",               dept:"Finishing & Fabrication"},
+  {si:38, id:"14909", name:"Equbal Ali Shaikh",            dept:"Finishing & Fabrication"},
+  {si:39, id:"14970", name:"Mohammad Zaid",                dept:"Finishing & Fabrication"},
+  {si:40, id:"14995", name:"Manpreet Singh",               dept:"Finishing & Fabrication"},
+  {si:41, id:"15009", name:"Abdul Raheman SK",             dept:"Finishing & Fabrication"},
+  {si:42, id:"14968", name:"Benedict Oco",                 dept:"Finishing & Fabrication"},
+  {si:43, id:"14986", name:"Jerald Frisco",                dept:"Finishing & Fabrication"},
+  {si:44, id:"15045", name:"Alexander Bayot",              dept:"Finishing & Fabrication"},
+  {si:45, id:"15240", name:"Sahil SK",                     dept:"Finishing & Fabrication"},
+  {si:46, id:"15260", name:"Suhel Mohammed",               dept:"Finishing & Fabrication"},
+  {si:47, id:"15358", name:"Jimmy Bartolome",              dept:"Finishing & Fabrication"},
+  {si:48, id:"15447", name:"Julius Ancheta",               dept:"Finishing & Fabrication"},
+  {si:49, id:"15448", name:"Jonel Marcelo",                dept:"Finishing & Fabrication"},
+];
+
+const DEPTS = ["Business Management","3D Design","3D Printing","Finishing & Fabrication"];
+const DCFG  = {
+  "Business Management":     {acc:"#6C47FF",lt:"#f5f3ff",bdr:"#d4c9ff",icon:"💼"},
+  "3D Design":               {acc:"#FF6B2B",lt:"#fff4ef",bdr:"#ffd0b8",icon:"🎨"},
+  "3D Printing":             {acc:"#0EA5E9",lt:"#f0f9ff",bdr:"#bae6fd",icon:"🖨️"},
+  "Finishing & Fabrication": {acc:"#10B981",lt:"#f0fdf8",bdr:"#a7f3d0",icon:"🔧"},
+};
+
+// ════════════════════════════════════════════════════════════
+//  PUNCTUALITY THRESHOLDS
+//  Late check-in:  AFTER 8:10 AM  (all working days)
+//  Early checkout: BEFORE 4:50 PM (Mon–Fri)  /  BEFORE 1:50 PM (Sat)
+//  Sundays = OFF → never flagged
+// ════════════════════════════════════════════════════════════
+const LATE_IN_LIMIT       = 8*60 + 10;   // 8:10 AM = 490 min
+const EARLY_OUT_LIMIT      = 16*60 + 50;  // 4:50 PM = 1010 min (weekdays)
+const SAT_EARLY_OUT_LIMIT  = 13*60 + 50;  // 1:50 PM = 830 min  (Saturday)
+
+// ════════════════════════════════════════════════════════════
+//  WORK SCHEDULE (regular minutes before overtime)
+//  Weekday: 9h (540)  ·  Saturday 8:00 AM–2:00 PM = 6h (360)  ·  Sunday 100% OT
+// ════════════════════════════════════════════════════════════
+const REG_WEEKDAY = 540;
+const REG_SATURDAY = 360;
+
+// ════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════
+let STATE = {
+  pdfData:   null,   // { empId: { "YYYY-MM-DD": {tin, tout, status} } }
+  dateList:  [],     // sorted list of "YYYY-MM-DD" strings from PDF
+  yearMonth: "",     // e.g. "May 2026"
+  fileName:  "",
+  activeTab: "Business Management",
+  viewMode:  "inout",
+};
+
+// ════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════
+const DOW_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function parseDateStr(ddmmyyyy){
+  // "01/05/2026" → Date object
+  const [dd,mm,yyyy] = ddmmyyyy.split("/").map(Number);
+  return new Date(yyyy, mm-1, dd);
+}
+function dateKey(d){ // Date → "YYYY-MM-DD"
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function getDayType(isoKey){
+  const d = new Date(isoKey+"T00:00:00");
+  const dow = d.getDay(); // 0=Sun,6=Sat
+  if(dow===0) return "sun";
+  if(dow===6) return "sat";
+  return "wd";
+}
+function formatDateHeader(isoKey){
+  // "2026-05-01" → day=1, dow="Fri"
+  const d = new Date(isoKey+"T00:00:00");
+  return { day: d.getDate(), dow: DOW_SHORT[d.getDay()], month: MONTH_NAMES[d.getMonth()] };
+}
+function t2m(hhmm){ // "07:43" → minutes
+  if(!hhmm) return null;
+  const [h,m] = hhmm.split(":").map(Number);
+  return h*60+m;
+}
+function mHHMM(mins){ // minutes → "H:MM"
+  if(mins===null||mins===undefined||mins<0) return "—";
+  const h=Math.floor(mins/60), m=mins%60;
+  return h+":"+(m<10?"0":"")+m;
+}
+function fmtHrs(mins){ // overtime minutes → "0.5 hrs" / "1 hr" / "1.5 hrs" / "5 hrs"
+  if(mins===null||mins===undefined||mins<=0) return "—";
+  const h = mins/60;
+  const txt = Number.isInteger(h) ? String(h) : h.toFixed(1);
+  return txt + (h===1 ? " hr" : " hrs");
+}
+function fmt12(hhmm){ // "07:43" → "7:43 AM"
+  if(!hhmm) return "—";
+  const [h,m] = hhmm.split(":").map(Number);
+  const ap=h>=12?"PM":"AM";
+  return (h%12||12)+":"+(m<10?"0":"")+m+" "+ap;
+}
+
+// ── Overtime rounding ──
+// Credit half-hour blocks: every 25 minutes of extra work = +0.5h.
+// 25 min → 0:30, 50 min → 1:00, 75 min → 1:30, … (never counted in raw minutes).
+function roundOT(otMin){
+  if(!otMin || otMin<=0) return 0;
+  const halfBlocks = Math.floor(otMin / 25);
+  return halfBlocks * 30; // credited overtime in minutes (multiples of 30)
+}
+
+function calcOT(tin, tout, dtype, status){
+  // Only calculate hours when we have a complete in+out pair
+  if(status !== "complete") return {worked:null, ot:null};
+  const inM=t2m(tin), outM=t2m(tout);
+  if(inM===null || outM===null) return {worked:null,ot:null};
+  const worked = outM - inM;
+  if(worked<=0) return {worked:null,ot:null};
+  const reg = dtype==="sat"?REG_SATURDAY : dtype==="sun"?0 : REG_WEEKDAY; // 6h / 0h / 9h
+  const rawOt = dtype==="sun" ? worked : Math.max(0, worked-reg);
+  const ot = roundOT(rawOt); // rounded to half-hour blocks
+  return {worked, ot};
+}
+
+// ── Punctuality flags ──
+// Late  = check-in strictly after 8:10 AM (only when a check-in exists)
+// Early = check-out strictly before the day's cutoff (4:50 PM Mon–Fri / 1:50 PM Sat)
+function punctuality(tin, tout, dtype){
+  let late=false, early=false;
+  if(dtype==="sun") return {late, early};          // Sunday = OFF, no flags
+  const earlyLimit = dtype==="sat" ? SAT_EARLY_OUT_LIMIT : EARLY_OUT_LIMIT;
+  const inM  = t2m(tin);
+  const outM = t2m(tout);
+  if(inM!==null  && inM  > LATE_IN_LIMIT)  late  = true;
+  if(outM!==null && outM < earlyLimit)     early = true;
+  return {late, early};
+}
+
+// ════════════════════════════════════════════════════════════
+//  PDF PARSER  — matches strictly by Employee ID
+//  For each day, pools ALL punch times across every entry, then
+//  takes EARLIEST time as check-in and LATEST time as check-out.
+// ════════════════════════════════════════════════════════════
+async function loadPdfJs(){
+  if(window.pdfjsLib) return;
+  await new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload=res; s.onerror=rej; document.head.appendChild(s);
+  });
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc=
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+async function parsePdf(file){
+  await loadPdfJs();
+  const buf = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
+
+  setProgress(`Reading ${pdf.numPages} pages…`);
+
+  // Collect all text per page preserving structure
+  const pages = [];
+  for(let i=1;i<=pdf.numPages;i++){
+    const pg = await pdf.getPage(i);
+    const ct = await pg.getTextContent();
+    const items = ct.items.slice().sort((a,b)=>{
+      const dy = Math.round(b.transform[5]) - Math.round(a.transform[5]);
+      return dy!==0 ? dy : a.transform[4]-b.transform[4];
+    });
+    const rows = [];
+    let curY = null, curRow = [];
+    for(const item of items){
+      const y = Math.round(item.transform[5]);
+      if(curY===null || Math.abs(y-curY)>4){
+        if(curRow.length) rows.push(curRow.map(i=>i.str).join(" ").trim());
+        curRow=[item]; curY=y;
+      } else { curRow.push(item); }
+    }
+    if(curRow.length) rows.push(curRow.map(i=>i.str).join(" ").trim());
+    pages.push(rows.join("\n"));
+  }
+
+  const fullText = pages.join("\n=PAGE=\n");
+
+  const rosterIds = new Set(ROSTER.map(r=>r.id));
+  const result = {};      // empId → { dateKey: {tin, tout, status} }
+  const dateSet = new Set();
+  const pageBlocks = fullText.split("=PAGE=");
+
+  for(const block of pageBlocks){
+    // Identify which roster employee this page belongs to
+    let empId = null;
+    for(const id of rosterIds){
+      const re = new RegExp("\\b"+id+"\\b");
+      if(re.test(block)){ empId=id; break; }
+    }
+    if(!empId) continue;
+
+    // ── Pool ALL punch times per day across every entry/line ──
+    const dayTimes = {}; // dk → [ "HH:MM", ... ]  (all punches that day)
+
+    for(const line of block.split("\n")){
+      const dateMatch = line.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+      if(!dateMatch) continue;
+
+      const dk = dateKey(parseDateStr(dateMatch[0]));
+      dateSet.add(dk);
+
+      // All clock-time tokens (with or without seconds)
+      let times = [...line.matchAll(/\b(\d{1,2}:\d{2})(?::\d{2})?\b/g)].map(m=>m[1]);
+
+      // The final token at the end of the line is the "Total Hrs" column — drop it
+      const totalMatch = line.match(/\b(\d{1,2}:\d{2})\s*$/);
+      const totalStr = totalMatch ? totalMatch[1] : null;
+      if(totalStr && times.length && times[times.length-1]===totalStr){
+        times = times.slice(0, -1);
+      }
+      // Never treat 0:00 as a real punch
+      times = times.filter(t => t !== "0:00");
+      if(times.length===0) continue;
+
+      if(!dayTimes[dk]) dayTimes[dk] = [];
+      dayTimes[dk].push(...times);
+    }
+
+    // ── Resolve each day: earliest = check-in, latest = check-out ──
+    const days = {};
+    for(const dk of Object.keys(dayTimes)){
+      const uniq = [...new Set(dayTimes[dk])].filter(t => t !== "0:00");
+      if(uniq.length===0) continue;
+      uniq.sort((a,b)=> t2m(a) - t2m(b));
+      const tin = uniq[0];
+      if(uniq.length>=2){
+        days[dk] = { tin, tout: uniq[uniq.length-1], status:"complete" };
+      } else {
+        days[dk] = { tin, tout:null, status:"in_only" };
+      }
+    }
+
+    if(Object.keys(days).length>0){
+      result[empId] = days;
+    }
+  }
+
+  const sortedDates = [...dateSet].sort();
+  let yearMonth = "";
+  if(sortedDates.length>0){
+    const d = new Date(sortedDates[0]+"T00:00:00");
+    yearMonth = MONTH_NAMES[d.getMonth()]+" "+d.getFullYear();
+  }
+
+  return {pdfData: result, dateList: sortedDates, yearMonth};
+}
+
+// ════════════════════════════════════════════════════════════
+//  UI — FILE HANDLING
+// ════════════════════════════════════════════════════════════
+async function handleFile(file){
+  if(!file) return;
+  if(!file.name.toLowerCase().endsWith(".pdf")){
+    alert("Please upload a .pdf file.");
+    return;
+  }
+
+  document.getElementById("dropzone").style.display="none";
+  document.getElementById("loading").style.display="block";
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("btn-upload").disabled=true;
+
+  try {
+    const {pdfData, dateList, yearMonth} = await parsePdf(file);
+
+    STATE.pdfData   = pdfData;
+    STATE.dateList  = dateList;
+    STATE.yearMonth = yearMonth;
+    STATE.fileName  = file.name;
+    STATE.activeTab = "Business Management";
+    STATE.viewMode  = "inout";
+
+    document.getElementById("fname-label").textContent = "📄 "+file.name;
+    document.getElementById("btn-reset").style.display="";
+
+    const matched = Object.keys(pdfData).length;
+    const unmatched = ROSTER.filter(r=>!pdfData[r.id]).map(r=>r.name);
+    const bannerEl = document.getElementById("match-banner");
+    bannerEl.innerHTML =
+      `<span>✅ <strong>${matched}</strong> employee IDs matched from PDF</span>`+
+      `<span style="color:#888">📅 Period: <strong>${dateList[0]||""}</strong> → <strong>${dateList[dateList.length-1]||""}</strong> (${dateList.length} days)</span>`+
+      (unmatched.length?`<span style="color:#e07020">⚠️ No data: ${unmatched.slice(0,6).join(", ")}${unmatched.length>6?" +"+( unmatched.length-6)+" more":""}</span>`:"");
+
+    document.getElementById("loading").style.display="none";
+    document.getElementById("dashboard").style.display="";
+
+    renderAll();
+
+  } catch(err){
+    document.getElementById("loading").style.display="none";
+    document.getElementById("dropzone").style.display="";
+    alert("Failed to parse PDF:\n"+err.message);
+    console.error(err);
+  }
+
+  document.getElementById("btn-upload").disabled=false;
+  document.getElementById("file-input").value="";
+}
+
+function setProgress(msg){
+  const el=document.getElementById("loading-progress");
+  if(el) el.textContent=msg;
+}
+
+// ════════════════════════════════════════════════════════════
+//  RESET
+// ════════════════════════════════════════════════════════════
+function resetApp(){
+  STATE.pdfData   = null;
+  STATE.dateList  = [];
+  STATE.yearMonth = "";
+  STATE.fileName  = "";
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("loading").style.display="none";
+  document.getElementById("dropzone").style.display="";
+  document.getElementById("fname-label").textContent="";
+  document.getElementById("btn-reset").style.display="none";
+  document.getElementById("file-input").value="";
+  renderTabs();
+}
+
+// ════════════════════════════════════════════════════════════
+//  RENDER TABS
+// ════════════════════════════════════════════════════════════
+function renderTabs(){
+  const container = document.getElementById("dept-tabs");
+  container.innerHTML = DEPTS.map(d=>{
+    const cfg     = DCFG[d];
+    const members = ROSTER.filter(r=>r.dept===d);
+    const matched = STATE.pdfData
+      ? members.filter(r=>STATE.pdfData[r.id]).length
+      : null;
+    const isA = d===STATE.activeTab;
+    return `<button class="dtab${isA?" active":""}"
+      style="--tacc:${cfg.acc};${isA?"border-bottom:3px solid "+cfg.acc:""}"
+      onclick="switchTab('${d}')">
+      <span>${cfg.icon}</span><span>${d}</span>
+      ${matched!==null?`<span class="badge">${matched}/${members.length}</span>`:`<span class="badge">${members.length}</span>`}
+    </button>`;
+  }).join("");
+}
+
+function switchTab(d){
+  STATE.activeTab=d;
+  renderTabs();
+  renderDeptCard();
+}
+function setView(v){
+  STATE.viewMode=v;
+  renderDeptCard();
+}
+function renderAll(){
+  renderTabs();
+  renderDeptCard();
+}
+
+// ════════════════════════════════════════════════════════════
+//  COMPUTE DEPARTMENT DATA (shared by render + export)
+// ════════════════════════════════════════════════════════════
+function computeDept(dept){
+  const members = ROSTER.filter(r=>r.dept===dept);
+  const dates   = STATE.dateList;
+  let dTotalWorked=0, dTotalOT=0, dPresent=0, dLate=0, dEarly=0;
+
+  const rowData = members.map(emp=>{
+    const rec = STATE.pdfData?.[emp.id] || {};
+    let eWorked=0, eOT=0, eDays=0, eLate=0, eEarly=0;
+
+    const cells = dates.map(dk=>{
+      const dtype = getDayType(dk);
+      const punch = rec[dk];
+      if(!punch){
+        return {dtype, present:false, tin:null, tout:null, worked:null, ot:null, status:null, late:false, early:false};
+      }
+      const {tin, tout, status} = punch;
+      const {worked, ot} = calcOT(tin, tout, dtype, status);
+      const {late, early} = punctuality(tin, tout, dtype);
+      if(worked!==null){ eWorked+=worked; eOT+=ot||0; eDays++; }
+      if(late)  eLate++;
+      if(early) eEarly++;
+      return {dtype, present:true, tin, tout, worked, ot, status, late, early};
+    });
+
+    if(eDays>0){ dPresent++; dTotalWorked+=eWorked; dTotalOT+=eOT; }
+    dLate += eLate; dEarly += eEarly;
+    return {emp, cells, eWorked, eOT, eDays, eLate, eEarly};
+  });
+
+  return {members, dates, rowData, dTotalWorked, dTotalOT, dPresent, dLate, dEarly};
+}
+
+// ════════════════════════════════════════════════════════════
+//  RENDER DEPARTMENT CARD + TABLE
+// ════════════════════════════════════════════════════════════
+function renderDeptCard(){
+  const dept = STATE.activeTab;
+  const cfg  = DCFG[dept];
+  const {members, dates, rowData, dTotalWorked, dTotalOT, dPresent, dLate, dEarly} = computeDept(dept);
+
+  // ── Stat cards ─────────────────────────────────────────────
+  const statsHTML = `<div class="stats" style="--acc:${cfg.acc};--bdr:${cfg.bdr}">
+    ${[
+      {l:"Members",        v:members.length, s:"total roster"},
+      {l:"Active (PDF)",   v:dPresent,       s:"employees with data"},
+      {l:"Late Check-ins", v:dLate,          s:"days after 8:10 AM"},
+      {l:"Early Checkouts",v:dEarly,         s:"before 4:50 PM (Sat 1:50)"},
+    ].map(s=>`<div class="stat-card">
+      <div class="stat-lbl">${s.l}</div>
+      <div class="stat-val">${s.v}</div>
+      <div class="stat-sub">${s.s}</div>
+    </div>`).join("")}
+  </div>`;
+
+  // ── View toggles + legend ──────────────────────────────────
+  const viewHTML = `<div class="view-row" style="--acc:${cfg.acc}">
+    ${[["inout","🕐 In / Out"],["worked","⏱ Hours Worked"],["ot","🔴 Overtime Only"]].map(([v,l])=>
+      `<button class="vtbtn${STATE.viewMode===v?" on":""}" onclick="setView('${v}')">${l}</button>`
+    ).join("")}
+    <div class="legend">
+      <span class="leg" style="background:#f0fdf4;border-color:#86efac;color:#15803d">✓ On time</span>
+      <span class="leg" style="background:#fee2e2;border-color:#fca5a5;color:#b91c1c">⏰ Late In</span>
+      <span class="leg" style="background:#ffedd5;border-color:#fdba74;color:#c2410c">🏃 Early Out</span>
+      <span class="leg" style="background:#fff7ed;border-color:#fcd34d;color:#b45309">⚡ Overtime</span>
+      <span class="leg" style="background:#fffbeb;border-color:#fcd34d;color:#d97706">⚠ In Only</span>
+      <span class="leg" style="background:#f5f5f6;border-color:#ddd;color:#aaa">— Absent/Off</span>
+    </div>
+  </div>`;
+
+  // ── Table header rows ──────────────────────────────────────
+  const STICKY_W = [32, 68, 175];
+  const STICKY_TOTAL = STICKY_W.reduce((a,b)=>a+b,0);
+
+  const dayColW = STATE.viewMode==="inout"
+    ? (dates.length > 25 ? 60 : dates.length > 15 ? 66 : 72)
+    : (dates.length > 25 ? 44 : dates.length > 15 ? 50 : 56);
+
+  let hdrDate="", hdrDow="";
+  dates.forEach(dk=>{
+    const {day,dow,month} = formatDateHeader(dk);
+    const dtype = getDayType(dk);
+    const isOff = dtype==="sun";
+    const regLabel = dtype==="sat"?"6h" : dtype==="sun"?"OFF":"9h";
+    const opacity  = isOff?"0.45":"1";
+    hdrDate += `<th style="min-width:${dayColW}px;opacity:${opacity};padding:6px 2px">
+      <div style="font-size:13px;font-weight:800;line-height:1">${day}</div>
+      <div style="font-size:9px;opacity:.75;margin-top:2px">${month}</div>
+    </th>`;
+    hdrDow += `<th style="min-width:${dayColW}px;opacity:${opacity};padding:4px 2px;font-size:9.5px">
+      <div>${dow}</div>
+      <div style="opacity:.8">${regLabel}</div>
+    </th>`;
+  });
+
+  const fixedHdrDate = `
+    <th class="s0 left bsep" style="left:0;min-width:${STICKY_W[0]}px;padding:6px 4px;font-size:10px">#</th>
+    <th class="s0"           style="left:${STICKY_W[0]}px;min-width:${STICKY_W[1]}px;font-size:10px">EMP ID</th>
+    <th class="s0 left"      style="left:${STICKY_W[0]+STICKY_W[1]}px;min-width:${STICKY_W[2]}px;border-right:2px solid rgba(255,255,255,.25);font-size:12px;text-align:left;padding-left:10px">Employee Name</th>`;
+  const fixedHdrDow = `
+    <th class="s0 bsep" style="left:0;min-width:${STICKY_W[0]}px;font-size:9px;color:rgba(255,255,255,.7)">SI</th>
+    <th class="s0"      style="left:${STICKY_W[0]}px;min-width:${STICKY_W[1]}px;font-size:9px;color:rgba(255,255,255,.7)">ID</th>
+    <th class="s0"      style="left:${STICKY_W[0]+STICKY_W[1]}px;min-width:${STICKY_W[2]}px;font-size:9px;color:rgba(255,255,255,.7);border-right:2px solid rgba(255,255,255,.25);text-align:left;padding-left:10px">Dept · ${dept}</th>`;
+  const totHdrDate = `
+    <th class="bsep" style="min-width:62px;padding:6px 4px">TOTAL<br><span style="font-size:8.5px;opacity:.7">H:MM</span></th>
+    <th style="min-width:66px;padding:6px 4px">OVERTIME<br><span style="font-size:8.5px;opacity:.7">hours</span></th>
+    <th style="min-width:42px;padding:6px 4px">DAYS</th>
+    <th class="bsep" style="min-width:52px;padding:6px 4px">LATE<br><span style="font-size:8.5px;opacity:.7">in ⏰</span></th>
+    <th style="min-width:52px;padding:6px 4px">EARLY<br><span style="font-size:8.5px;opacity:.7">out 🏃</span></th>`;
+  const totHdrDow = `
+    <th class="bsep" style="min-width:62px;font-size:9px;color:rgba(255,255,255,.7)">worked</th>
+    <th style="min-width:66px;font-size:9px;color:rgba(255,255,255,.7)">OT hrs</th>
+    <th style="min-width:42px;font-size:9px;color:rgba(255,255,255,.7)">#days</th>
+    <th class="bsep" style="min-width:52px;font-size:9px;color:rgba(255,255,255,.7)">&gt;8:10</th>
+    <th style="min-width:52px;font-size:9px;color:rgba(255,255,255,.7)">early</th>`;
+
+  // ── Table body rows ────────────────────────────────────────
+  const rowsHTML = rowData.map(({emp,cells,eWorked,eOT,eDays,eLate,eEarly},ri)=>{
+    const hasData = eDays>0;
+    const rbg     = ri%2===0?"#fff":"#f8f9fb";
+
+    const cellsHTML = cells.map(cell=>{
+      if(!cell.present){
+        const txt = cell.dtype==="sun"?"○":"—";
+        return `<td class="c-off">${txt}</td>`;
+      }
+
+      // ── IN / OUT view — show BOTH times, with late/early highlight ──
+      if(STATE.viewMode==="inout"){
+        const sunBg = cell.dtype==="sun" ? "background:#fef2f2;" : "";
+        const inStyle  = !cell.tin  ? "color:#ccc"
+                        : cell.late  ? "color:#b91c1c;font-weight:800"
+                        : "color:#15803d;font-weight:600";
+        const outStyle = !cell.tout ? "color:#ccc"
+                        : cell.early ? "color:#c2410c;font-weight:800"
+                        : "color:#0369a1;font-weight:600";
+        const inTxt  = cell.tin  ? fmt12(cell.tin)  : "—";
+        const outTxt = cell.tout ? fmt12(cell.tout) : "—";
+        return `<td style="padding:4px 2px;${sunBg}">
+          <div style="font-size:9.5px;${inStyle};white-space:nowrap">${cell.late?"⏰ ":""}${inTxt}</div>
+          <div style="font-size:9.5px;${outStyle};white-space:nowrap;margin-top:2px;border-top:1px dashed #e8eaee;padding-top:2px">${cell.early?"🏃 ":""}${outTxt}</div>
+        </td>`;
+      }
+
+      // Incomplete entries — no checkout found (Hours / OT views)
+      if(cell.status==="in_only"){
+        const timeStr = cell.tin ? `<div style="font-size:9px;color:#888;margin-top:1px">${fmt12(cell.tin)}</div>` : "";
+        return `<td style="background:#fffbeb;border-left:1px solid #eff1f4">
+          <span style="font-size:9px;font-weight:700;color:#d97706;white-space:nowrap">In Only</span>
+          ${timeStr}
+        </td>`;
+      }
+
+      // Complete entry — normal rendering
+      let cls="c-ok", txt="";
+      if(cell.dtype==="sun")  cls="c-sun";
+      else if(cell.ot>0)      cls="c-ot";
+
+      if(STATE.viewMode==="worked"){
+        txt = cell.worked!==null ? mHHMM(cell.worked) : "—";
+      } else { // ot
+        txt = cell.ot>0 ? fmtHrs(cell.ot) : `<span class="c-in">—</span>`;
+        if(cell.ot===0) cls="";
+      }
+      return `<td class="${cls}">${txt}</td>`;
+    }).join("");
+
+    return `<tr style="background:${rbg}">
+      <td class="s0 bsep" style="left:0;min-width:${STICKY_W[0]}px;color:#bbb;font-size:10.5px;background:${rbg}">${emp.si}</td>
+      <td class="s0"      style="left:${STICKY_W[0]}px;min-width:${STICKY_W[1]}px;font-family:monospace;font-size:10.5px;font-weight:700;color:${hasData?cfg.acc:"#c0c7d0"};background:${rbg}">${emp.id}</td>
+      <td class="s0 left" style="left:${STICKY_W[0]+STICKY_W[1]}px;min-width:${STICKY_W[2]}px;font-weight:600;font-size:12px;border-right:2px solid #e2e6ea;color:${hasData?"#1a1a2e":"#b0b7c3"};background:${rbg}">
+        ${emp.name}
+        ${(!hasData && STATE.pdfData!==null)
+          ?'<span style="font-size:9.5px;color:#f59e0b;margin-left:6px;font-weight:500">no data</span>'
+          :''}
+      </td>
+      ${cellsHTML}
+      <td class="bsep" style="font-weight:800;font-size:12px;color:${hasData?cfg.acc:"#ddd"};min-width:62px">${hasData?mHHMM(eWorked):"—"}</td>
+      <td style="font-weight:700;font-size:12px;color:${eOT>0?"#b45309":"#ccc"};min-width:66px">${eOT>0?fmtHrs(eOT):"—"}</td>
+      <td style="font-size:12px;color:${eDays>0?"#555":"#ccc"};min-width:42px">${eDays>0?eDays:"—"}</td>
+      <td class="bsep" style="font-weight:800;font-size:12px;color:${eLate>0?"#b91c1c":"#ccc"};min-width:52px">${eLate>0?eLate:"—"}</td>
+      <td style="font-weight:800;font-size:12px;color:${eEarly>0?"#c2410c":"#ccc"};min-width:52px">${eEarly>0?eEarly:"—"}</td>
+    </tr>`;
+  }).join("");
+
+  // ── Footer totals ──────────────────────────────────────────
+  const dayTotals = dates.map((dk,di)=>{
+    let total=0,count=0;
+    rowData.forEach(({cells})=>{
+      const cell=cells[di];
+      if(cell&&cell.worked!==null){total+=cell.worked;count++;}
+    });
+    return {total,count};
+  });
+
+  const footerDayCells = dayTotals.map(({total,count})=>
+    count>0
+      ? `<td style="font-size:10px;color:${cfg.acc};font-weight:700">${mHHMM(total)}</td>`
+      : `<td style="color:#ccc;font-size:10px">—</td>`
+  ).join("");
+
+  const footerHTML = `<tfoot>
+    <tr style="--lt:${cfg.lt};--bdr:${cfg.bdr}">
+      <td colspan="3" class="s0 bsep left" style="left:0;min-width:${STICKY_TOTAL}px;color:${cfg.acc};background:${cfg.lt};border-right:2px solid ${cfg.bdr};font-size:11px">
+        DEPT TOTAL — ${STATE.yearMonth}
+      </td>
+      ${footerDayCells}
+      <td class="bsep" style="color:${cfg.acc};background:${cfg.lt};font-size:12px">${mHHMM(dTotalWorked)}</td>
+      <td style="color:#b45309;background:${cfg.lt};font-size:12px">${dTotalOT>0?fmtHrs(dTotalOT):"—"}</td>
+      <td style="background:${cfg.lt};font-size:12px">${dPresent}</td>
+      <td class="bsep" style="color:#b91c1c;background:${cfg.lt};font-size:12px">${dLate||"—"}</td>
+      <td style="color:#c2410c;background:${cfg.lt};font-size:12px">${dEarly||"—"}</td>
+    </tr>
+  </tfoot>`;
+
+  const tableHTML = `
+  <div class="tbl-wrap" style="--acc:${cfg.acc}">
+    <table>
+      <thead>
+        <tr class="hdr-date" style="--acc:${cfg.acc}">${fixedHdrDate}${hdrDate}${totHdrDate}</tr>
+        <tr class="hdr-dow"  style="--acc:${cfg.acc}">${fixedHdrDow}${hdrDow}${totHdrDow}</tr>
+      </thead>
+      <tbody>${rowsHTML}</tbody>
+      ${footerHTML}
+    </table>
+  </div>
+  <p class="note">
+    📌 Matched strictly by Employee ID &nbsp;·&nbsp;
+    Each day reads <strong>all PDF entries</strong> → earliest punch = In, latest punch = Out &nbsp;·&nbsp;
+    <span style="color:#b91c1c;font-weight:600">⏰ Late In</span> = after 8:10 AM &nbsp;·&nbsp;
+    <span style="color:#c2410c;font-weight:600">🏃 Early Out</span> = before 4:50 PM (Sat before 1:50 PM) &nbsp;·&nbsp;
+    Sundays excluded from punctuality flags &nbsp;·&nbsp;<br>
+    Weekdays 9h regular &nbsp;·&nbsp; Saturday 8:00 AM–2:00 PM (6h) &nbsp;·&nbsp; Sunday 100% overtime &nbsp;·&nbsp;
+    <strong>Overtime in half-hour steps</strong>: ≥25 min extra = 0:30, ≥50 min = 1:00 (every 25 min adds 0.5h) &nbsp;·&nbsp;
+    <span style="color:#d97706;font-weight:600">In Only</span> = no checkout found, excluded from hour totals
+  </p>`;
+
+  document.getElementById("dept-card").innerHTML = `
+    <div class="card-hdr" style="--acc:${cfg.acc}">
+      <div class="card-bar" style="background:${cfg.acc}"></div>
+      <span class="card-title">${cfg.icon} ${dept}</span>
+      <span class="card-sub">${members.length} employees</span>
+      <span class="period-pill">📅 ${STATE.yearMonth||"—"} · ${dates.length} days</span>
+      <button class="dl-btn" id="dl-xlsx" onclick="downloadExcel()">⬇ Excel</button>
+      <button class="dl-btn" onclick="downloadPDF()">⬇ PDF</button>
+    </div>
+    ${statsHTML}
+    ${viewHTML}
+    ${tableHTML}`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  EXPORT — EXCEL (.xlsx via SheetJS)
+// ════════════════════════════════════════════════════════════
+async function loadXlsx(){
+  if(window.XLSX) return;
+  await new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload=res; s.onerror=rej; document.head.appendChild(s);
+  });
+}
+
+async function downloadExcel(){
+  if(!STATE.pdfData){ alert("Upload a PDF first."); return; }
+  const btn = document.getElementById("dl-xlsx");
+  if(btn){ btn.disabled=true; btn.textContent="…"; }
+  try{
+    await loadXlsx();
+    const dept = STATE.activeTab;
+    const {dates, rowData, dTotalWorked, dTotalOT, dPresent, dLate, dEarly} = computeDept(dept);
+
+    // Header — two columns (In / Out) per date
+    const header = ["SI","Emp ID","Employee Name"];
+    dates.forEach(dk=>{
+      const {day,dow,month} = formatDateHeader(dk);
+      header.push(`${day} ${month} ${dow} - In`, `${day} ${month} ${dow} - Out`);
+    });
+    header.push("Total Worked","Overtime","Days","Late In","Early Out");
+
+    const aoa = [header];
+    rowData.forEach(({emp,cells,eWorked,eOT,eDays,eLate,eEarly})=>{
+      const row = [emp.si, emp.id, emp.name];
+      cells.forEach(c=>{
+        if(!c.present){ row.push(c.dtype==="sun"?"OFF":"—", c.dtype==="sun"?"OFF":"—"); }
+        else { row.push(c.tin?fmt12(c.tin):"—", c.tout?fmt12(c.tout):"—"); }
+      });
+      row.push(eDays>0?mHHMM(eWorked):"—", eOT>0?fmtHrs(eOT):"—", eDays||"—", eLate||0, eEarly||0);
+      aoa.push(row);
+    });
+
+    // Footer totals
+    const foot = ["", "", `DEPT TOTAL — ${STATE.yearMonth}`];
+    dates.forEach(()=> foot.push("",""));
+    foot.push(mHHMM(dTotalWorked), dTotalOT>0?fmtHrs(dTotalOT):"—", dPresent, dLate, dEarly);
+    aoa.push(foot);
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = header.map((h,i)=> i===2 ? {wch:22} : {wch:13});
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, dept.replace(/[^A-Za-z0-9 ]/g,"").slice(0,28) || "Sheet1");
+    const fname = `Attendance_${dept.replace(/[^A-Za-z0-9]+/g,"_")}_${(STATE.yearMonth||"export").replace(/\s+/g,"_")}.xlsx`;
+    XLSX.writeFile(wb, fname);
+  } catch(err){
+    alert("Excel export failed:\n"+err.message);
+    console.error(err);
+  }
+  if(btn){ btn.disabled=false; btn.textContent="⬇ Excel"; }
+}
+
+// ════════════════════════════════════════════════════════════
+//  EXPORT — PDF (print-ready window → Save as PDF)
+// ════════════════════════════════════════════════════════════
+function downloadPDF(){
+  if(!STATE.pdfData){ alert("Upload a PDF first."); return; }
+  const dept = STATE.activeTab;
+  const cfg  = DCFG[dept];
+  const {dates, rowData, dTotalWorked, dTotalOT, dPresent, dLate, dEarly} = computeDept(dept);
+
+  const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+  let head = `<th>SI</th><th>ID</th><th class="nm">Employee Name</th>`;
+  dates.forEach(dk=>{
+    const {day,dow,month} = formatDateHeader(dk);
+    const off = getDayType(dk)==="sun";
+    head += `<th${off?' class="off"':''}>${day} ${month}<br>${dow}</th>`;
+  });
+  head += `<th>Total</th><th>OT</th><th>Days</th><th>Late</th><th>Early</th>`;
+
+  let body = "";
+  rowData.forEach(({emp,cells,eWorked,eOT,eDays,eLate,eEarly})=>{
+    let tds = `<td>${emp.si}</td><td>${emp.id}</td><td class="nm">${esc(emp.name)}</td>`;
+    cells.forEach(c=>{
+      if(!c.present){ tds += `<td class="muted">${c.dtype==="sun"?"OFF":"—"}</td>`; return; }
+      const inS  = c.late  ? 'style="color:#b91c1c;font-weight:bold"' : '';
+      const outS = c.early ? 'style="color:#c2410c;font-weight:bold"' : '';
+      tds += `<td><div ${inS}>${c.tin?fmt12(c.tin):"—"}</div><div ${outS}>${c.tout?fmt12(c.tout):"—"}</div></td>`;
+    });
+    tds += `<td><b>${eDays>0?mHHMM(eWorked):"—"}</b></td><td>${eOT>0?fmtHrs(eOT):"—"}</td><td>${eDays||"—"}</td><td>${eLate||"—"}</td><td>${eEarly||"—"}</td>`;
+    body += `<tr>${tds}</tr>`;
+  });
+
+  let foot = `<td colspan="3" class="nm">DEPT TOTAL — ${esc(STATE.yearMonth)}</td>`;
+  dates.forEach(()=> foot += `<td></td>`);
+  foot += `<td><b>${mHHMM(dTotalWorked)}</b></td><td>${dTotalOT>0?fmtHrs(dTotalOT):"—"}</td><td>${dPresent}</td><td>${dLate||"—"}</td><td>${dEarly||"—"}</td>`;
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(dept)} — ${esc(STATE.yearMonth)}</title>
+  <style>
+    @page{size:A3 landscape;margin:10mm}
+    *{font-family:Arial,Helvetica,sans-serif}
+    h1{font-size:15px;margin:0 0 2px;color:${cfg.acc}}
+    .sub{font-size:10px;color:#666;margin-bottom:8px}
+    table{width:100%;border-collapse:collapse;font-size:7px}
+    th,td{border:1px solid #d4d8de;padding:2px 3px;text-align:center}
+    thead th{background:${cfg.acc};color:#fff}
+    th.off{background:#9aa3b0}
+    .nm{text-align:left;white-space:nowrap}
+    .muted{color:#bbb}
+    tfoot td{background:${cfg.lt};font-weight:bold;color:${cfg.acc}}
+    tbody tr:nth-child(even){background:#f7f8fa}
+  </style></head>
+  <body>
+    <h1>${cfg.icon} ${esc(dept)} — Attendance</h1>
+    <div class="sub">Period: ${esc(STATE.yearMonth)} · ${dates.length} days · In/Out times · Late after 8:10 AM · Early before 4:50 PM (Sat 1:50 PM) · OT in half-hour steps</div>
+    <table>
+      <thead><tr>${head}</tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot><tr>${foot}</tr></tfoot>
+    </table>
+    <script>window.onload=function(){window.focus();window.print();}<\/script>
+  </body></html>`;
+
+  const w = window.open("", "_blank");
+  if(!w){ alert("Pop-up blocked — allow pop-ups to export PDF."); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+// ════════════════════════════════════════════════════════════
+//  INIT — Drop zone chips + initial tab render
+// ════════════════════════════════════════════════════════════
+(function init(){
+  document.getElementById("dz-chips").innerHTML = DEPTS.map(d=>{
+    const cfg=DCFG[d];
+    const cnt=ROSTER.filter(r=>r.dept===d).length;
+    return `<div class="dz-chip" style="--acc:${cfg.acc};--lt:${cfg.lt};--bdr:${cfg.bdr}">
+      <div class="dz-chip-icon">${cfg.icon}</div>
+      <div class="dz-chip-name">${d}</div>
+      <div class="dz-chip-cnt">${cnt} employees</div>
+    </div>`;
+  }).join("");
+  renderTabs();
+})();
+</script>
+</body>
+</html>
