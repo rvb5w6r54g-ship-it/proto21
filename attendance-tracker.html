@@ -378,7 +378,6 @@ const ROSTER = [
 
 const DEPTS = ["Business Management","3D Design","3D Printing","Finishing & Fabrication"];
 const DCFG  = {
-  "All":                     {acc:"#475569",lt:"#f1f5f9",bdr:"#cbd5e1",icon:"👥"},
   "Business Management":     {acc:"#6C47FF",lt:"#f5f3ff",bdr:"#d4c9ff",icon:"💼"},
   "3D Design":               {acc:"#DB2777",lt:"#fdf2f8",bdr:"#fbcfe8",icon:"🎨"},
   "3D Printing":             {acc:"#0EA5E9",lt:"#f0f9ff",bdr:"#bae6fd",icon:"🖨️"},
@@ -750,25 +749,18 @@ function resetApp(){
 // ════════════════════════════════════════════════════════════
 function renderTabs(){
   const container = document.getElementById("dept-tabs");
-  const tabs = ["All", ...DEPTS];
-  container.innerHTML = tabs.map(d=>{
-    const cfg  = DCFG[d];
-    const isA  = d===STATE.activeTab;
-    let badge;
-    if(d==="All"){
-      const cnt = STATE.pdfData ? Object.keys(STATE.pdfData).length : 0;
-      badge = `<span class="badge">${cnt}</span>`;
-    } else {
-      const members = ROSTER.filter(r=>r.dept===d);
-      const matched = STATE.pdfData ? members.filter(r=>STATE.pdfData[r.id]).length : null;
-      badge = matched!==null ? `<span class="badge">${matched}/${members.length}</span>`
-                             : `<span class="badge">${members.length}</span>`;
-    }
+  container.innerHTML = DEPTS.map(d=>{
+    const cfg     = DCFG[d];
+    const members = ROSTER.filter(r=>r.dept===d);
+    const matched = STATE.pdfData
+      ? members.filter(r=>STATE.pdfData[r.id]).length
+      : null;
+    const isA = d===STATE.activeTab;
     return `<button class="dtab${isA?" active":""}"
       style="--tacc:${cfg.acc};${isA?"border-bottom:3px solid "+cfg.acc:""}"
       onclick="switchTab('${d}')">
       <span>${cfg.icon}</span><span>${d}</span>
-      ${badge}
+      ${matched!==null?`<span class="badge">${matched}/${members.length}</span>`:`<span class="badge">${members.length}</span>`}
     </button>`;
   }).join("");
 }
@@ -791,9 +783,7 @@ function renderAll(){
 //  COMPUTE DEPARTMENT DATA (shared by render + export)
 // ════════════════════════════════════════════════════════════
 function computeDept(dept){
-  const members = dept === "All"
-    ? ROSTER.filter(r => STATE.pdfData && STATE.pdfData[r.id])   // only uploaded people
-    : ROSTER.filter(r => r.dept === dept);
+  const members = ROSTER.filter(r=>r.dept===dept);
   const dates   = STATE.dateList;
   let dTotalWorked=0, dTotalOT=0, dPresent=0, dLate=0, dEarly=0;
 
@@ -1193,88 +1183,7 @@ function downloadPDF(){
     </div>`;
   }).join("");
   renderTabs();
-
-  // ── Multiple-file upload wiring (select or drop several PDFs) ──
-  const fileInput = document.getElementById("file-input");
-  const dropzone  = document.getElementById("dropzone");
-  fileInput.multiple = true;
-  fileInput.onchange = (e)=>{ handleFiles(e.target.files); };
-  dropzone.ondrop = (e)=>{
-    dropzone.classList.remove("drag");
-    e.preventDefault();
-    handleFiles(e.dataTransfer.files);
-  };
 })();
-
-// ════════════════════════════════════════════════════════════
-//  MULTI-FILE UPLOAD — parse one or more PDFs and MERGE them.
-//  Uploading again ADDS to the existing data (use Reset to clear).
-// ════════════════════════════════════════════════════════════
-async function handleFiles(fileList){
-  const files = Array.from(fileList || []).filter(f => f && f.name.toLowerCase().endsWith(".pdf"));
-  if(!files.length){ alert("Please choose PDF file(s)."); return; }
-
-  const firstUpload = !STATE.pdfData;
-  document.getElementById("dropzone").style.display="none";
-  document.getElementById("loading").style.display="block";
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("btn-upload").disabled=true;
-
-  // Start from existing data so repeated uploads accumulate
-  const merged  = STATE.pdfData ? Object.assign({}, STATE.pdfData) : {};
-  const dateSet = new Set(STATE.dateList || []);
-  const names   = STATE.fileName ? STATE.fileName.split(" · ") : [];
-
-  try {
-    for(let i=0;i<files.length;i++){
-      setProgress(`Parsing ${i+1} of ${files.length}: ${files[i].name}`);
-      const {pdfData, dateList} = await parsePdf(files[i]);
-      for(const id of Object.keys(pdfData)){
-        merged[id] = Object.assign(merged[id] || {}, pdfData[id]); // merge by employee + date
-      }
-      dateList.forEach(d => dateSet.add(d));
-      names.push(files[i].name);
-    }
-
-    const sortedDates = [...dateSet].sort();
-    let yearMonth = "";
-    if(sortedDates.length){
-      const d = new Date(sortedDates[0]+"T00:00:00");
-      yearMonth = MONTH_NAMES[d.getMonth()]+" "+d.getFullYear();
-    }
-
-    STATE.pdfData   = merged;
-    STATE.dateList  = sortedDates;
-    STATE.yearMonth = yearMonth;
-    STATE.fileName  = names.join(" · ");
-    if(firstUpload) STATE.activeTab = "All";
-    STATE.viewMode  = STATE.viewMode || "inout";
-
-    const fileCount = names.length;
-    document.getElementById("fname-label").textContent =
-      "📄 " + (fileCount>1 ? fileCount+" files" : names[0]);
-    document.getElementById("btn-reset").style.display="";
-
-    const matched = Object.keys(merged).length;
-    const unmatched = ROSTER.filter(r=>!merged[r.id]).map(r=>r.name);
-    document.getElementById("match-banner").innerHTML =
-      `<span>✅ <strong>${matched}</strong> employees matched from ${fileCount} file${fileCount>1?"s":""}</span>`+
-      `<span style="color:#888">📅 ${sortedDates[0]||""} → ${sortedDates[sortedDates.length-1]||""} (${sortedDates.length} days)</span>`+
-      (unmatched.length?`<span style="color:#e07020">⚠️ No data: ${unmatched.slice(0,6).join(", ")}${unmatched.length>6?" +"+(unmatched.length-6)+" more":""}</span>`:"");
-
-    document.getElementById("loading").style.display="none";
-    document.getElementById("dashboard").style.display="";
-    renderAll();
-  } catch(err){
-    document.getElementById("loading").style.display="none";
-    document.getElementById(STATE.pdfData ? "dashboard" : "dropzone").style.display="";
-    alert("Failed to parse PDF:\n"+err.message);
-    console.error(err);
-  }
-
-  document.getElementById("btn-upload").disabled=false;
-  document.getElementById("file-input").value="";
-}
 </script>
 </body>
 </html>
