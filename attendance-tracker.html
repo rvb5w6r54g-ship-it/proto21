@@ -12,6 +12,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;color:#1a1a2
 #topbar{background:#0f172a;display:flex;align-items:stretch;padding:0 24px;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.35);min-height:56px}
 .logo{display:flex;align-items:center;gap:10px;padding:0 24px 0 0;border-right:1px solid rgba(255,255,255,.08);margin-right:2px;flex-shrink:0}
 .logo-icon{width:32px;height:32px;border-radius:7px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;padding:2px}
+.logo-icon img,.gate-logo img{width:100%;height:100%;object-fit:contain;display:block}
+.logo-icon.has-img{background:transparent;padding:0}
+.gate-logo.has-img{background:#0f172a}
 .logo-text{color:#fff;font-weight:800;font-size:13px;letter-spacing:-.3px;line-height:1.2}
 .logo-sub{color:rgba(255,255,255,.3);font-size:9px}
 #dept-tabs{display:flex;flex:1;align-items:stretch;overflow-x:auto;scrollbar-width:none}
@@ -35,7 +38,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;color:#1a1a2
 /* ── LOGIN GATE ── */
 #gate{position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#0f172a,#1e293b);display:flex;align-items:center;justify-content:center;padding:20px}
 .gate-card{background:#fff;border-radius:18px;padding:44px 38px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-.gate-logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#FF6B2B,#ff9a5c);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:26px;margin:0 auto 18px}
+.gate-logo{width:56px;height:56px;border-radius:14px;background:#eef1f5;display:flex;align-items:center;justify-content:center;padding:6px;margin:0 auto 18px}
 .gate-card h1{font-size:20px;font-weight:800;margin-bottom:8px;color:#1a1a2e}
 .gate-card p{font-size:13px;color:#888;margin-bottom:26px;line-height:1.55}
 .gbtn{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #dadce0;border-radius:9px;padding:11px 20px;font-size:14px;font-weight:600;color:#3c4043;cursor:pointer;transition:all .15s;width:100%;justify-content:center}
@@ -131,7 +134,7 @@ tfoot td{font-weight:800;font-size:11.5px;padding:9px 4px;border-top:2px solid v
 <!-- ── LOGIN GATE (shown until a @proto21.ae account signs in) ── -->
 <div id="gate">
   <div class="gate-card">
-    <div class="gate-logo">P</div>
+    <div class="gate-logo"><svg viewBox="0 0 64 64" width="100%" height="100%" style="display:block"><polygon points="32,34 56,20 56,44 32,58" fill="#4b5563"/><polygon points="8,20 32,34 32,58 8,44" fill="#6b7280"/><polygon points="32,6 56,20 32,34 8,20" fill="#d1d5db"/><g stroke="#1f2937" stroke-width="1.5" stroke-linejoin="round" fill="none"><polygon points="32,6 56,20 56,44 32,58 8,44 8,20"/><polyline points="8,20 32,34 56,20"/><line x1="32" y1="34" x2="32" y2="58"/></g><polygon points="23,23 32,28 32,37 23,32" fill="#e5e7eb"/><polygon points="32,28 41,23 41,32 32,37" fill="#cbd5e1"/><polygon points="32,18 41,23 32,28 23,23" fill="#d42027"/><g stroke="#1f2937" stroke-width="1" stroke-linejoin="round" fill="none"><polygon points="32,18 41,23 41,32 32,37 23,32 23,23"/><polyline points="23,23 32,28 41,23"/><line x1="32" y1="28" x2="32" y2="37"/></g></svg></div>
     <h1>PROTO21 Attendance</h1>
     <p>Restricted access. Sign in with your <strong>@proto21.ae</strong> Google account to continue.</p>
     <button class="gbtn" id="gate-btn" onclick="login()">
@@ -148,7 +151,7 @@ tfoot td{font-weight:800;font-size:11.5px;padding:9px 4px;border-top:2px solid v
 <!-- ── TOP BAR ── -->
 <div id="topbar">
   <div class="logo">
-    <div class="logo-icon">P</div>
+    <div class="logo-icon"><svg viewBox="0 0 64 64" width="100%" height="100%" style="display:block"><polygon points="32,34 56,20 56,44 32,58" fill="#4b5563"/><polygon points="8,20 32,34 32,58 8,44" fill="#6b7280"/><polygon points="32,6 56,20 32,34 8,20" fill="#d1d5db"/><g stroke="#1f2937" stroke-width="1.5" stroke-linejoin="round" fill="none"><polygon points="32,6 56,20 56,44 32,58 8,44 8,20"/><polyline points="8,20 32,34 56,20"/><line x1="32" y1="34" x2="32" y2="58"/></g><polygon points="23,23 32,28 32,37 23,32" fill="#e5e7eb"/><polygon points="32,28 41,23 41,32 32,37" fill="#cbd5e1"/><polygon points="32,18 41,23 32,28 23,23" fill="#d42027"/><g stroke="#1f2937" stroke-width="1" stroke-linejoin="round" fill="none"><polygon points="32,18 41,23 41,32 32,37 23,32 23,23"/><polyline points="23,23 32,28 41,23"/><line x1="32" y1="28" x2="32" y2="37"/></g></svg></div>
     <div>
       <div class="logo-text">PROTO21</div>
       <div class="logo-sub">Attendance Tracker</div>
@@ -235,7 +238,14 @@ function showApp(show){
   appRoot.style.display = show ? "block" : "none";
 }
 
-if(firebaseConfig.apiKey.startsWith("PASTE")){
+const AUTH_ENABLED = false; // TEMP — set to true to re-enable Google sign-in before going live
+
+if(!AUTH_ENABLED){
+  // ── TESTING MODE: skip Google sign-in and open the app directly ──
+  window.login  = () => {};
+  window.logout = () => {};
+  showApp(true);
+} else if(firebaseConfig.apiKey.startsWith("PASTE")){
   // Not configured yet — guide the admin instead of crashing
   gateBtn.style.display = "none";
   gateMsg.innerHTML = "⚙️ <strong>Setup needed.</strong> Paste your Firebase config into this file (the <code>firebaseConfig</code> object) to enable Google sign-in.";
@@ -289,6 +299,28 @@ if(firebaseConfig.apiKey.startsWith("PASTE")){
 </script>
 
 <script>
+// ════════════════════════════════════════════════════════════
+//  BRAND LOGO
+//  To use your EXACT PROTO21 artwork, paste it here as a base64
+//  data URI. Leave "" to keep the drawn cube fallback.
+//
+//  How to get the string:
+//   1. Go to an "image to base64" site (e.g. base64.guru) OR run
+//      in a terminal:  base64 -i logo.png   (macOS/Linux)
+//   2. Copy the full "data:image/png;base64,iVBORw0KGgo…" text
+//   3. Paste it between the quotes below.
+//  Tip: a transparent-background PNG looks best on the login card.
+// ════════════════════════════════════════════════════════════
+const LOGO_SRC = "https://kommodo.ai/i/bbxCtdwWUmVBk9bmqQBU"; // e.g. "data:image/png;base64,iVBORw0KGgo..."
+
+function applyBrandLogo(){
+  if(typeof LOGO_SRC!=="string" || !LOGO_SRC.startsWith("data:")) return;
+  document.querySelectorAll(".logo-icon, .gate-logo").forEach(el=>{
+    el.classList.add("has-img");
+    el.innerHTML = '<img src="'+LOGO_SRC+'" alt="PROTO21"/>';
+  });
+}
+
 // ════════════════════════════════════════════════════════════
 //  MASTER ROSTER — source of truth, matched by Employee ID
 // ════════════════════════════════════════════════════════════
@@ -346,8 +378,9 @@ const ROSTER = [
 
 const DEPTS = ["Business Management","3D Design","3D Printing","Finishing & Fabrication"];
 const DCFG  = {
+  "All":                     {acc:"#475569",lt:"#f1f5f9",bdr:"#cbd5e1",icon:"👥"},
   "Business Management":     {acc:"#6C47FF",lt:"#f5f3ff",bdr:"#d4c9ff",icon:"💼"},
-  "3D Design":               {acc:"#FF6B2B",lt:"#fff4ef",bdr:"#ffd0b8",icon:"🎨"},
+  "3D Design":               {acc:"#DB2777",lt:"#fdf2f8",bdr:"#fbcfe8",icon:"🎨"},
   "3D Printing":             {acc:"#0EA5E9",lt:"#f0f9ff",bdr:"#bae6fd",icon:"🖨️"},
   "Finishing & Fabrication": {acc:"#10B981",lt:"#f0fdf8",bdr:"#a7f3d0",icon:"🔧"},
 };
@@ -363,11 +396,12 @@ const EARLY_OUT_LIMIT      = 16*60 + 50;  // 4:50 PM = 1010 min (weekdays)
 const SAT_EARLY_OUT_LIMIT  = 13*60 + 50;  // 1:50 PM = 830 min  (Saturday)
 
 // ════════════════════════════════════════════════════════════
-//  WORK SCHEDULE (regular minutes before overtime)
-//  Weekday: 9h (540)  ·  Saturday 8:00 AM–2:00 PM = 6h (360)  ·  Sunday 100% OT
+//  WORKING HOURS  (overtime = time worked OUTSIDE this window)
+//  Weekdays 8:00 AM – 5:00 PM  ·  Saturday 8:00 AM – 2:00 PM  ·  Sunday 100% OT
 // ════════════════════════════════════════════════════════════
-const REG_WEEKDAY = 540;
-const REG_SATURDAY = 360;
+const WIN_START        = 8*60;   // 8:00 AM (480) — start of the day (all working days)
+const WIN_END_WEEKDAY  = 17*60;  // 5:00 PM (1020)
+const WIN_END_SATURDAY = 14*60;  // 2:00 PM (840)
 
 // ════════════════════════════════════════════════════════════
 //  STATE
@@ -446,8 +480,17 @@ function calcOT(tin, tout, dtype, status){
   if(inM===null || outM===null) return {worked:null,ot:null};
   const worked = outM - inM;
   if(worked<=0) return {worked:null,ot:null};
-  const reg = dtype==="sat"?REG_SATURDAY : dtype==="sun"?0 : REG_WEEKDAY; // 6h / 0h / 9h
-  const rawOt = dtype==="sun" ? worked : Math.max(0, worked-reg);
+
+  // Overtime = time worked OUTSIDE the working-hours window
+  let rawOt;
+  if(dtype==="sun"){
+    rawOt = worked;                                  // Sunday: 100% overtime
+  } else {
+    const winEnd = dtype==="sat" ? WIN_END_SATURDAY : WIN_END_WEEKDAY;
+    const before = Math.max(0, WIN_START - inM);     // worked before 8:00 AM
+    const after  = Math.max(0, outM - winEnd);       // worked after end of hours
+    rawOt = before + after;
+  }
   const ot = roundOT(rawOt); // rounded to half-hour blocks
   return {worked, ot};
 }
@@ -489,7 +532,9 @@ async function parsePdf(file){
 
   setProgress(`Reading ${pdf.numPages} pages…`);
 
-  // Collect all text per page preserving structure
+  // ── Read each page into structured rows that KEEP the X position of
+  //    every time token (so we can tell TIME IN apart from TIME OUT) ──
+  const DATE_RE = /(\d{2})\/(\d{2})\/(\d{4})/;
   const pages = [];
   for(let i=1;i<=pdf.numPages;i++){
     const pg = await pdf.getPage(i);
@@ -499,77 +544,120 @@ async function parsePdf(file){
       return dy!==0 ? dy : a.transform[4]-b.transform[4];
     });
     const rows = [];
-    let curY = null, curRow = [];
+    let curY = null, curItems = [];
+    const flush = ()=>{
+      if(!curItems.length) return;
+      const text = curItems.map(it=>it.str).join(" ").trim();
+      const times = [];
+      for(const it of curItems){
+        const ms = it.str.match(/\b(\d{1,2}:\d{2})(?::\d{2})?\b/g);
+        if(ms) for(const tok of ms){
+          times.push({ t: tok.match(/(\d{1,2}:\d{2})/)[1], x: it.transform[4] });
+        }
+      }
+      rows.push({ text, times });
+      curItems = [];
+    };
     for(const item of items){
       const y = Math.round(item.transform[5]);
-      if(curY===null || Math.abs(y-curY)>4){
-        if(curRow.length) rows.push(curRow.map(i=>i.str).join(" ").trim());
-        curRow=[item]; curY=y;
-      } else { curRow.push(item); }
+      if(curY===null || Math.abs(y-curY)>4){ flush(); curItems=[item]; curY=y; }
+      else curItems.push(item);
     }
-    if(curRow.length) rows.push(curRow.map(i=>i.str).join(" ").trim());
-    pages.push(rows.join("\n"));
+    flush();
+    pages.push(rows);
   }
 
-  const fullText = pages.join("\n=PAGE=\n");
+  // Strip the trailing "Total Hrs" cell and 0:00 placeholders from a row's times
+  function punchTimes(row){
+    let times = row.times.slice();
+    const tm = row.text.match(/\b(\d{1,2}:\d{2})\s*$/);
+    if(tm && times.length && times[times.length-1].t===tm[1]) times = times.slice(0,-1);
+    return times.filter(o => o.t !== "0:00");
+  }
+
+  // ── Learn the TIME IN vs TIME OUT column X centres from every COMPLETE row
+  //    (rows with both punches), so lone punches can be placed correctly ──
+  let sumIn=0, sumOut=0, nCal=0;
+  for(const rows of pages){
+    for(const row of rows){
+      if(!DATE_RE.test(row.text)) continue;
+      const ts = punchTimes(row);
+      if(ts.length>=2){
+        const s = ts.slice().sort((a,b)=>a.x-b.x);
+        sumIn += s[0].x; sumOut += s[s.length-1].x; nCal++;
+      }
+    }
+  }
+  const inX  = nCal ? sumIn/nCal  : null;
+  const outX = nCal ? sumOut/nCal : null;
+  const haveCols = inX!==null && outX!==null && Math.abs(outX-inX) > 1;
 
   const rosterIds = new Set(ROSTER.map(r=>r.id));
   const result = {};      // empId → { dateKey: {tin, tout, status} }
   const dateSet = new Set();
-  const pageBlocks = fullText.split("=PAGE=");
+  let lastEmpId = null;    // carry the employee forward across continuation pages
 
-  for(const block of pageBlocks){
+  for(const rows of pages){
     // Identify which roster employee this page belongs to
+    const pageText = rows.map(r=>r.text).join(" ");
     let empId = null;
     for(const id of rosterIds){
-      const re = new RegExp("\\b"+id+"\\b");
-      if(re.test(block)){ empId=id; break; }
+      if(new RegExp("\\b"+id+"\\b").test(pageText)){ empId=id; break; }
     }
+    // A continuation page may not repeat the ID in its header — attribute its
+    // rows to the previous employee so no days are dropped across page breaks.
+    if(!empId) empId = lastEmpId;
     if(!empId) continue;
+    lastEmpId = empId;
 
-    // ── Pool ALL punch times per day across every entry/line ──
-    const dayTimes = {}; // dk → [ "HH:MM", ... ]  (all punches that day)
-
-    for(const line of block.split("\n")){
-      const dateMatch = line.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-      if(!dateMatch) continue;
-
-      const dk = dateKey(parseDateStr(dateMatch[0]));
+    // ── Build entries per day, assigning each punch to the right column ──
+    const dayEntries = {}; // dk → [ {tin, tout}, ... ]  (in reading order)
+    for(const row of rows){
+      const dm = row.text.match(DATE_RE);
+      if(!dm) continue;
+      const dk = dateKey(parseDateStr(dm[0]));
       dateSet.add(dk);
 
-      // All clock-time tokens (with or without seconds)
-      let times = [...line.matchAll(/\b(\d{1,2}:\d{2})(?::\d{2})?\b/g)].map(m=>m[1]);
+      const ts = punchTimes(row);
+      if(ts.length===0) continue;
 
-      // The final token at the end of the line is the "Total Hrs" column — drop it
-      const totalMatch = line.match(/\b(\d{1,2}:\d{2})\s*$/);
-      const totalStr = totalMatch ? totalMatch[1] : null;
-      if(totalStr && times.length && times[times.length-1]===totalStr){
-        times = times.slice(0, -1);
-      }
-      // Never treat 0:00 as a real punch
-      times = times.filter(t => t !== "0:00");
-      if(times.length===0) continue;
-
-      if(!dayTimes[dk]) dayTimes[dk] = [];
-      dayTimes[dk].push(...times);
-    }
-
-    // ── Resolve each day: earliest = check-in, latest = check-out ──
-    const days = {};
-    for(const dk of Object.keys(dayTimes)){
-      const uniq = [...new Set(dayTimes[dk])].filter(t => t !== "0:00");
-      if(uniq.length===0) continue;
-      uniq.sort((a,b)=> t2m(a) - t2m(b));
-      const tin = uniq[0];
-      if(uniq.length>=2){
-        days[dk] = { tin, tout: uniq[uniq.length-1], status:"complete" };
+      let tin=null, tout=null;
+      if(ts.length>=2){
+        const s = ts.slice().sort((a,b)=>a.x-b.x);
+        tin = s[0].t; tout = s[s.length-1].t;
       } else {
-        days[dk] = { tin, tout:null, status:"in_only" };
+        // Lone punch — classify by column X so a TIME OUT is NEVER read as TIME IN
+        const only = ts[0];
+        const isOut = haveCols
+          ? Math.abs(only.x - outX) < Math.abs(only.x - inX)
+          : t2m(only.t) >= 12*60; // fallback when no complete rows: afternoon = checkout
+        if(isOut) tout = only.t; else tin = only.t;
       }
+      if(!dayEntries[dk]) dayEntries[dk] = [];
+      dayEntries[dk].push({ tin, tout });
     }
 
+    // ── Resolve each day: prioritise the FIRST entry's TIME IN / TIME OUT ──
+    const days = {};
+    for(const dk of Object.keys(dayEntries)){
+      const entries = dayEntries[dk];
+      const firstIn = entries.find(e => e.tin);          // first entry that has a TIME IN
+      const tin  = firstIn ? firstIn.tin : null;
+      let   tout = firstIn && firstIn.tout ? firstIn.tout : null;
+      if(tout===null){ const fo = entries.find(e => e.tout); if(fo) tout = fo.tout; }
+      if(!tin && !tout) continue;
+      days[dk] = {
+        tin,
+        tout,
+        status: (tin && tout) ? "complete" : tin ? "in_only" : "out_only"
+      };
+    }
+
+    // MERGE into the employee's record across ALL their pages (don't overwrite,
+    // so multi-page records keep every day). Keyed by date, so serial numbers
+    // and page order don't matter.
     if(Object.keys(days).length>0){
-      result[empId] = days;
+      result[empId] = Object.assign(result[empId] || {}, days);
     }
   }
 
@@ -662,18 +750,25 @@ function resetApp(){
 // ════════════════════════════════════════════════════════════
 function renderTabs(){
   const container = document.getElementById("dept-tabs");
-  container.innerHTML = DEPTS.map(d=>{
-    const cfg     = DCFG[d];
-    const members = ROSTER.filter(r=>r.dept===d);
-    const matched = STATE.pdfData
-      ? members.filter(r=>STATE.pdfData[r.id]).length
-      : null;
-    const isA = d===STATE.activeTab;
+  const tabs = ["All", ...DEPTS];
+  container.innerHTML = tabs.map(d=>{
+    const cfg  = DCFG[d];
+    const isA  = d===STATE.activeTab;
+    let badge;
+    if(d==="All"){
+      const cnt = STATE.pdfData ? Object.keys(STATE.pdfData).length : 0;
+      badge = `<span class="badge">${cnt}</span>`;
+    } else {
+      const members = ROSTER.filter(r=>r.dept===d);
+      const matched = STATE.pdfData ? members.filter(r=>STATE.pdfData[r.id]).length : null;
+      badge = matched!==null ? `<span class="badge">${matched}/${members.length}</span>`
+                             : `<span class="badge">${members.length}</span>`;
+    }
     return `<button class="dtab${isA?" active":""}"
       style="--tacc:${cfg.acc};${isA?"border-bottom:3px solid "+cfg.acc:""}"
       onclick="switchTab('${d}')">
       <span>${cfg.icon}</span><span>${d}</span>
-      ${matched!==null?`<span class="badge">${matched}/${members.length}</span>`:`<span class="badge">${members.length}</span>`}
+      ${badge}
     </button>`;
   }).join("");
 }
@@ -696,7 +791,9 @@ function renderAll(){
 //  COMPUTE DEPARTMENT DATA (shared by render + export)
 // ════════════════════════════════════════════════════════════
 function computeDept(dept){
-  const members = ROSTER.filter(r=>r.dept===dept);
+  const members = dept === "All"
+    ? ROSTER.filter(r => STATE.pdfData && STATE.pdfData[r.id])   // only uploaded people
+    : ROSTER.filter(r => r.dept === dept);
   const dates   = STATE.dateList;
   let dTotalWorked=0, dTotalOT=0, dPresent=0, dLate=0, dEarly=0;
 
@@ -760,6 +857,7 @@ function renderDeptCard(){
       <span class="leg" style="background:#ffedd5;border-color:#fdba74;color:#c2410c">🏃 Early Out</span>
       <span class="leg" style="background:#fff7ed;border-color:#fcd34d;color:#b45309">⚡ Overtime</span>
       <span class="leg" style="background:#fffbeb;border-color:#fcd34d;color:#d97706">⚠ In Only</span>
+      <span class="leg" style="background:#fdf4ff;border-color:#d8b4fe;color:#9333ea">⚠ Out Only</span>
       <span class="leg" style="background:#f5f5f6;border-color:#ddd;color:#aaa">— Absent/Off</span>
     </div>
   </div>`;
@@ -846,6 +944,13 @@ function renderDeptCard(){
           ${timeStr}
         </td>`;
       }
+      if(cell.status==="out_only"){
+        const timeStr = cell.tout ? `<div style="font-size:9px;color:#888;margin-top:1px">${fmt12(cell.tout)}</div>` : "";
+        return `<td style="background:#fdf4ff;border-left:1px solid #eff1f4">
+          <span style="font-size:9px;font-weight:700;color:#9333ea;white-space:nowrap">Out Only</span>
+          ${timeStr}
+        </td>`;
+      }
 
       // Complete entry — normal rendering
       let cls="c-ok", txt="";
@@ -922,13 +1027,13 @@ function renderDeptCard(){
   </div>
   <p class="note">
     📌 Matched strictly by Employee ID &nbsp;·&nbsp;
-    Each day reads <strong>all PDF entries</strong> → earliest punch = In, latest punch = Out &nbsp;·&nbsp;
+    Each day reads <strong>all PDF entries</strong> → uses the <strong>first entry's</strong> In &amp; Out &nbsp;·&nbsp;
     <span style="color:#b91c1c;font-weight:600">⏰ Late In</span> = after 8:10 AM &nbsp;·&nbsp;
     <span style="color:#c2410c;font-weight:600">🏃 Early Out</span> = before 4:50 PM (Sat before 1:50 PM) &nbsp;·&nbsp;
     Sundays excluded from punctuality flags &nbsp;·&nbsp;<br>
-    Weekdays 9h regular &nbsp;·&nbsp; Saturday 8:00 AM–2:00 PM (6h) &nbsp;·&nbsp; Sunday 100% overtime &nbsp;·&nbsp;
-    <strong>Overtime in half-hour steps</strong>: ≥25 min extra = 0:30, ≥50 min = 1:00 (every 25 min adds 0.5h) &nbsp;·&nbsp;
-    <span style="color:#d97706;font-weight:600">In Only</span> = no checkout found, excluded from hour totals
+    Working hours: weekdays 8:00 AM–5:00 PM, Saturday 8:00 AM–2:00 PM, Sunday 100% overtime &nbsp;·&nbsp;
+    <strong>Overtime</strong> = time worked outside those hours, in half-hour steps (≥25 min = 0.5 hr, ≥50 min = 1 hr) &nbsp;·&nbsp;
+    <span style="color:#d97706;font-weight:600">In Only</span> / <span style="color:#9333ea;font-weight:600">Out Only</span> = incomplete punch, excluded from hour totals
   </p>`;
 
   document.getElementById("dept-card").innerHTML = `
@@ -1077,6 +1182,7 @@ function downloadPDF(){
 //  INIT — Drop zone chips + initial tab render
 // ════════════════════════════════════════════════════════════
 (function init(){
+  applyBrandLogo();
   document.getElementById("dz-chips").innerHTML = DEPTS.map(d=>{
     const cfg=DCFG[d];
     const cnt=ROSTER.filter(r=>r.dept===d).length;
@@ -1087,7 +1193,88 @@ function downloadPDF(){
     </div>`;
   }).join("");
   renderTabs();
+
+  // ── Multiple-file upload wiring (select or drop several PDFs) ──
+  const fileInput = document.getElementById("file-input");
+  const dropzone  = document.getElementById("dropzone");
+  fileInput.multiple = true;
+  fileInput.onchange = (e)=>{ handleFiles(e.target.files); };
+  dropzone.ondrop = (e)=>{
+    dropzone.classList.remove("drag");
+    e.preventDefault();
+    handleFiles(e.dataTransfer.files);
+  };
 })();
+
+// ════════════════════════════════════════════════════════════
+//  MULTI-FILE UPLOAD — parse one or more PDFs and MERGE them.
+//  Uploading again ADDS to the existing data (use Reset to clear).
+// ════════════════════════════════════════════════════════════
+async function handleFiles(fileList){
+  const files = Array.from(fileList || []).filter(f => f && f.name.toLowerCase().endsWith(".pdf"));
+  if(!files.length){ alert("Please choose PDF file(s)."); return; }
+
+  const firstUpload = !STATE.pdfData;
+  document.getElementById("dropzone").style.display="none";
+  document.getElementById("loading").style.display="block";
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("btn-upload").disabled=true;
+
+  // Start from existing data so repeated uploads accumulate
+  const merged  = STATE.pdfData ? Object.assign({}, STATE.pdfData) : {};
+  const dateSet = new Set(STATE.dateList || []);
+  const names   = STATE.fileName ? STATE.fileName.split(" · ") : [];
+
+  try {
+    for(let i=0;i<files.length;i++){
+      setProgress(`Parsing ${i+1} of ${files.length}: ${files[i].name}`);
+      const {pdfData, dateList} = await parsePdf(files[i]);
+      for(const id of Object.keys(pdfData)){
+        merged[id] = Object.assign(merged[id] || {}, pdfData[id]); // merge by employee + date
+      }
+      dateList.forEach(d => dateSet.add(d));
+      names.push(files[i].name);
+    }
+
+    const sortedDates = [...dateSet].sort();
+    let yearMonth = "";
+    if(sortedDates.length){
+      const d = new Date(sortedDates[0]+"T00:00:00");
+      yearMonth = MONTH_NAMES[d.getMonth()]+" "+d.getFullYear();
+    }
+
+    STATE.pdfData   = merged;
+    STATE.dateList  = sortedDates;
+    STATE.yearMonth = yearMonth;
+    STATE.fileName  = names.join(" · ");
+    if(firstUpload) STATE.activeTab = "All";
+    STATE.viewMode  = STATE.viewMode || "inout";
+
+    const fileCount = names.length;
+    document.getElementById("fname-label").textContent =
+      "📄 " + (fileCount>1 ? fileCount+" files" : names[0]);
+    document.getElementById("btn-reset").style.display="";
+
+    const matched = Object.keys(merged).length;
+    const unmatched = ROSTER.filter(r=>!merged[r.id]).map(r=>r.name);
+    document.getElementById("match-banner").innerHTML =
+      `<span>✅ <strong>${matched}</strong> employees matched from ${fileCount} file${fileCount>1?"s":""}</span>`+
+      `<span style="color:#888">📅 ${sortedDates[0]||""} → ${sortedDates[sortedDates.length-1]||""} (${sortedDates.length} days)</span>`+
+      (unmatched.length?`<span style="color:#e07020">⚠️ No data: ${unmatched.slice(0,6).join(", ")}${unmatched.length>6?" +"+(unmatched.length-6)+" more":""}</span>`:"");
+
+    document.getElementById("loading").style.display="none";
+    document.getElementById("dashboard").style.display="";
+    renderAll();
+  } catch(err){
+    document.getElementById("loading").style.display="none";
+    document.getElementById(STATE.pdfData ? "dashboard" : "dropzone").style.display="";
+    alert("Failed to parse PDF:\n"+err.message);
+    console.error(err);
+  }
+
+  document.getElementById("btn-upload").disabled=false;
+  document.getElementById("file-input").value="";
+}
 </script>
 </body>
 </html>
